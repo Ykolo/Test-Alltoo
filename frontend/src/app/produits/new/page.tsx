@@ -1,7 +1,9 @@
+import AddProduitForm from "./AddProduitForm";
+
 const NewProduitPage = async () => {
   return (
-    <div>
-      <p>Ajouter un nouveau produit</p>
+    <div className="container mx-auto p-4">
+      <AddProduitForm />
     </div>
   );
 };

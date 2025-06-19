@@ -38,6 +38,19 @@ export const createProduit = async (
   }
 };
 
+export const getProduit = async (id: number) => {
+  try {
+    const res = await fetch(`${API_URL}/produits/${id}/`);
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    throw error;
+  }
+};
+
 export const deleteProduit = async (id: number) => {
   try {
     const res = await fetch(`${API_URL}/produits/${id}/`, {
@@ -45,6 +58,9 @@ export const deleteProduit = async (id: number) => {
     });
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
+    }
+    if (res.status === 204 || res.headers.get("content-length") === "0") {
+      return { success: true };
     }
     return await res.json();
   } catch (error) {
@@ -84,7 +100,8 @@ export const getFactures = async (page = 1) => {
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
-    return await res.json();
+    const data = await res.json();
+    return data.results || data;
   } catch (error) {
     console.error("Error fetching invoices:", error);
     throw error;
@@ -104,9 +121,8 @@ export const getFacture = async (id: number) => {
   }
 };
 
-export const createFacture = async (lignes: {
-  produits: number;
-  quantite: number;
+export const createFacture = async (data: {
+  lignes: { produit: number; quantite: number }[];
 }) => {
   try {
     const res = await fetch(`${API_URL}/factures/`, {
@@ -114,7 +130,7 @@ export const createFacture = async (lignes: {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ lignes }),
+      body: JSON.stringify(data),
     });
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
@@ -134,6 +150,10 @@ export const deleteFacture = async (id: number) => {
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
+    // Django renvoie souvent une réponse vide (204 No Content) pour DELETE
+    if (res.status === 204 || res.headers.get("content-length") === "0") {
+      return { success: true };
+    }
     return await res.json();
   } catch (error) {
     console.error("Error deleting invoice:", error);
@@ -143,9 +163,8 @@ export const deleteFacture = async (id: number) => {
 
 export const updateFacture = async (
   id: number,
-  lignes: {
-    produits: number;
-    quantite: number;
+  data: {
+    lignes: { produit: number; quantite: number }[];
   }
 ) => {
   try {
@@ -154,7 +173,7 @@ export const updateFacture = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ lignes }),
+      body: JSON.stringify(data),
     });
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);

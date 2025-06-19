@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -11,7 +17,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createProduit } from "@/lib/api";
+import { updateProduit } from "@/lib/api";
+import { ProduitType } from "@/types/produit";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -36,16 +43,20 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const AddProduitForm = () => {
+interface UpdateProduitFormProps {
+  produit: ProduitType;
+}
+
+const UpdateProduitForm = ({ produit }: UpdateProduitFormProps) => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nom: "",
-      prix: "",
-      date_peremption: "",
+      nom: produit.nom,
+      prix: produit.prix.toString(),
+      date_peremption: produit.date_peremption,
     },
   });
 
@@ -58,17 +69,16 @@ const AddProduitForm = () => {
       nom: string;
       prix: number;
       date_peremption: string;
-    }) => createProduit(nom, prix, date_peremption),
+    }) => updateProduit(produit.id, nom, prix, date_peremption),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["produits"] });
-      form.reset();
-      toast.success("Produit ajouté avec succès !");
+      toast.success("Produit modifié avec succès !");
       // Rediriger vers la page produits après succès
       router.push("/produits");
     },
     onError: (error) => {
-      console.error("Erreur lors de l'ajout du produit:", error);
-      toast.error("Erreur lors de l'ajout du produit");
+      console.error("Erreur lors de la modification du produit:", error);
+      toast.error("Erreur lors de la modification du produit");
     },
   });
 
@@ -83,7 +93,10 @@ const AddProduitForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Ajouter un nouveau produit</CardTitle>
+        <CardTitle>Modifier le produit</CardTitle>
+        <CardDescription>
+          Modifiez les informations du produit ci-dessous
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -135,13 +148,23 @@ const AddProduitForm = () => {
               )}
             />
 
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="w-full"
-            >
-              {mutation.isPending ? "Ajout en cours..." : "Ajouter le produit"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/produits")}
+                className="flex-1"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                disabled={mutation.isPending}
+                className="flex-1"
+              >
+                {mutation.isPending ? "Modification..." : "Modifier"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
@@ -149,4 +172,4 @@ const AddProduitForm = () => {
   );
 };
 
-export default AddProduitForm;
+export default UpdateProduitForm;

@@ -32,3 +32,15 @@ class FactureSerializer(serializers.ModelSerializer):
         for ligne_data in lignes_data:
             LigneFacture.objects.create(facture=facture, **ligne_data)
         return facture
+
+    def update(self, instance, validated_data):
+        lignes_data = validated_data.pop("lignes", [])
+
+        # Supprimer toutes les anciennes lignes
+        instance.lignes.all().delete()
+
+        # Créer les nouvelles lignes
+        for ligne_data in lignes_data:
+            LigneFacture.objects.create(facture=instance, **ligne_data)
+
+        return instance
