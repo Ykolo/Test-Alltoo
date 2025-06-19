@@ -1,13 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { getProduits, updateFacture } from "@/lib/api";
+import { getAllProduits, updateFacture } from "@/lib/api";
 import { FactureType } from "@/types/facture";
 import { ProduitType } from "@/types/produit";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -70,7 +64,7 @@ const UpdateFactureForm = ({ facture }: UpdateFactureFormProps) => {
   // Récupérer la liste des produits
   const { data: produits } = useQuery({
     queryKey: ["produits"],
-    queryFn: () => getProduits(),
+    queryFn: () => getAllProduits(),
   });
 
   // Calculer le total de la facture en temps réel
@@ -126,9 +120,6 @@ const UpdateFactureForm = ({ facture }: UpdateFactureFormProps) => {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Modifier la facture #{facture.id}</CardTitle>
-        <CardDescription>
-          Modifiez les produits et leurs quantités de cette facture
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

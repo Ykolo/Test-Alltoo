@@ -1,14 +1,23 @@
 const API_URL = "http://localhost:8000/api";
 
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 // Produits API
-export const getProduits = async (page = 1) => {
+export const getProduits = async (
+  page = 1
+): Promise<PaginatedResponse<any>> => {
   try {
     const res = await fetch(`${API_URL}/produits/?page=${page}`);
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
     const data = await res.json();
-    return data.results || data;
+    return data;
   } catch (error) {
     console.error("Error fetching products:", error);
     throw error;
@@ -93,15 +102,37 @@ export const updateProduit = async (
   }
 };
 
+export const getAllProduits = async () => {
+  try {
+    let allProduits: any[] = [];
+    let page = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const response = await getProduits(page);
+      allProduits = allProduits.concat(response.results);
+      hasMore = !!response.next;
+      page++;
+    }
+
+    return allProduits;
+  } catch (error) {
+    console.error("Error fetching all products:", error);
+    throw error;
+  }
+};
+
 // Factures API
-export const getFactures = async (page = 1) => {
+export const getFactures = async (
+  page = 1
+): Promise<PaginatedResponse<any>> => {
   try {
     const res = await fetch(`${API_URL}/factures/?page=${page}`);
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
     const data = await res.json();
-    return data.results || data;
+    return data;
   } catch (error) {
     console.error("Error fetching invoices:", error);
     throw error;

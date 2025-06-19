@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createFacture, getProduits } from "@/lib/api";
+import { createFacture, getAllProduits } from "@/lib/api";
 import { ProduitType } from "@/types/produit";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -56,7 +56,7 @@ const AddFactureForm = () => {
   // Récupérer la liste des produits
   const { data: produits } = useQuery({
     queryKey: ["produits"],
-    queryFn: () => getProduits(),
+    queryFn: () => getAllProduits(),
   });
 
   // Calculer le total de la facture en temps réel
