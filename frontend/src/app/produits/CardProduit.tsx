@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
 import { deleteProduit } from "@/lib/api";
 import { ProduitType } from "@/types/produit";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { isBefore } from "date-fns";
+import { addDays, isBefore, isWithinInterval } from "date-fns";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "../../lib/utils";
@@ -29,17 +30,32 @@ const CardProduit = ({ produit }: { produit: ProduitType }) => {
       toast.error(errorMessage);
     },
   });
-
   const handleDelete = () => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
       deleteMutation.mutate(produit.id);
     }
   };
 
+  const today = new Date();
+  const expirationDate = new Date(produit.date_peremption);
+  const isExpired = isBefore(expirationDate, today);
+  const isExpiringSoon = isWithinInterval(expirationDate, {
+    start: today,
+    end: addDays(today, 7), // Expire dans les 7 prochains jours
+  });
+
   return (
-    <Card>
+    <Card className="relative">
       <CardHeader>
-        <CardTitle>{produit.nom}</CardTitle>
+        <div className="flex justify-between items-start">
+          <CardTitle className="flex-1">{produit.nom}</CardTitle>
+          <div className="flex flex-col gap-1">
+            {isExpired && <Badge variant="destructive">Expiré</Badge>}
+            {!isExpired && isExpiringSoon && (
+              <Badge variant="warning">Expire bientôt</Badge>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <p>Prix: {produit.prix} €</p>

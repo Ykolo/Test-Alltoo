@@ -16,6 +16,7 @@ import { FactureType } from "@/types/facture";
 import { ProduitType } from "@/types/produit";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { addDays, isBefore, isWithinInterval } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -143,15 +144,43 @@ const UpdateFactureForm = ({ facture }: UpdateFactureFormProps) => {
                             {...field}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           >
+                            {" "}
                             <option value="">Sélectionnez un produit</option>
-                            {produits?.map((produit: ProduitType) => (
-                              <option
-                                key={produit.id}
-                                value={produit.id.toString()}
-                              >
-                                {produit.nom} - {produit.prix}€
-                              </option>
-                            ))}
+                            {produits?.map((produit: ProduitType) => {
+                              const today = new Date();
+                              const expirationDate = new Date(
+                                produit.date_peremption
+                              );
+                              const isExpired = isBefore(expirationDate, today);
+                              const isExpiringSoon = isWithinInterval(
+                                expirationDate,
+                                {
+                                  start: today,
+                                  end: addDays(today, 7),
+                                }
+                              );
+
+                              let statusText = "";
+                              if (isExpired) statusText = " (EXPIRÉ)";
+                              else if (isExpiringSoon)
+                                statusText = " (Expire bientôt)";
+
+                              return (
+                                <option
+                                  key={produit.id}
+                                  value={produit.id.toString()}
+                                  style={{
+                                    color: isExpired
+                                      ? "#dc2626"
+                                      : isExpiringSoon
+                                      ? "#d97706"
+                                      : "inherit",
+                                  }}
+                                >
+                                  {produit.nom} - {produit.prix}€{statusText}
+                                </option>
+                              );
+                            })}
                           </select>
                         </FormControl>
                         <FormMessage />
